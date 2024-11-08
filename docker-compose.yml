@@ -1,0 +1,73 @@
+services:
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile
+    ports:
+      - '5000:8080'
+    restart: always
+    volumes:
+      - './api/tmp:/app/tmp'
+    networks:
+      - network
+    depends_on:
+      - db
+      - mail
+      - rabbitmq
+  db:
+    container_name: db
+    image: mcr.microsoft.com/mssql/server
+    environment:
+      - 'ACCEPT_EULA=Y'
+      - 'MSSQL_PID=Evaluation'
+      - 'MSSQL_SA_PASSWORD=${DB_PASSWORD}'
+    volumes:
+      - 'mssql.data:/var/opt/mssql'
+    ports:
+      - '1433:1433'
+    networks:
+      - network
+  mail:
+    image: axllent/mailpit
+    container_name: mail
+    restart: unless-stopped
+    volumes:
+      - 'mail.data:/data'
+    ports:
+      - 8025:8025
+      - 1025:1025
+    environment:
+      - 'MP_MAX_MESSAGES=5000'
+      - 'MP_SMTP_AUTH_ACCEPT_ANY=1'
+      - 'MP_SMTP_AUTH_ALLOW_INSECURE=1'
+    networks:
+     - network
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      - 'RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}'
+      - 'RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}'
+    volumes:
+      - 'rabbitmq.data:/var/lib/rabbitmq'
+      - './api/tmp/logs/queue:/var/log/rabbitmq'
+    networks:
+      - network
+volumes:
+  mail.data:
+    driver: local
+    name: mail.data
+  rabbitmq.data:
+    driver: local
+    name: rabbitmq.data
+  mssql.data:
+    driver: local
+    name: mssql.data
+networks:
+  network:
+    driver: bridge
+    name: network

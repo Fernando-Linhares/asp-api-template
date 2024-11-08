@@ -1,0 +1,7 @@
+.env
+obj
+bin
+tmp/logs/*
+storage/public/*
+wwwroot/*
+.idea
