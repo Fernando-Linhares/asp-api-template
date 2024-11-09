@@ -1,5 +1,6 @@
 using Api.App.Controllers.Requests.Auth;
-using Api.App.Database;
+using Api.App.Features.Jwt;
+using Api.Database;
 using Api.App.Mails;
 using Api.App.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ namespace Api.App.Controllers.Auth;
 
 [ApiController]
 [Route("/auth/forgot-password")]
-public class ForgotPasswordController(DatabaseContext context) : BaseController
+public class ForgotPasswordController(DatabaseContext context, IStateLessSession stateLessSession) : BaseController
 {
     [HttpPost]
     public async Task<IActionResult> ResetPassword([FromBody] ForgotPassword request)
@@ -21,9 +22,11 @@ public class ForgotPasswordController(DatabaseContext context) : BaseController
             return AnswerNotFound(new { email = request.Email });
         }
 
-        var token = Token.GenerateForgotPasswordToken(user);
-        var mail = new ForgotPasswordMailBase(token.AccessToken)
+        var token = stateLessSession.ForgotPassword(user.Id, user.Email, user.Name);
+        
+        var mail = new ForgotPasswordMailBase
         {
+            VisitorToken = token.AccessToken, 
             To = user.Email
         };
 

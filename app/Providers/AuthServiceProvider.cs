@@ -1,5 +1,8 @@
 using System.Text;
+using Api.App.Features.Database;
+using Api.App.Features.Jwt;
 using Api.App.Features.Policies;
+using Api.App.Models;
 using Api.App.Policies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -37,13 +40,17 @@ public static class AuthServiceProvider
         
         builder.Services.AddAuthorization(options =>
         {
-            foreach (var rule in Policies.SelectMany(policy => policy.Rules))
+            using var context = DatabaseContextSingleton.GetInstance();
+            
+            foreach (Rule rule in context.Rules.ToList())
             {
                 options.AddPolicy(
-                    rule, 
-                    configPolicy => configPolicy.RequireClaim("Permission", rule));
+                    rule.Name, 
+                    configPolicy => configPolicy.RequireClaim("Permission", rule.Name));
             }
         });
+
+        builder.Services.AddScoped<IStateLessSession, StateLessSession>();
     }
 
     private static byte[] GetJwtToken()

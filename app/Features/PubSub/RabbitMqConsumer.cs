@@ -1,18 +1,16 @@
 using System.Text;
-using Api.App.Features.Queue;
-using Api.App.Features.Queue.Handlers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Serilog;
 
-namespace Api.App.Providers.Services;
+namespace Api.App.Features.PubSub;
 
-public class QueueConsumerService: BackgroundService
+public class RabbitMqConsumer: BackgroundService
 {
     private readonly IConnection _connection;
     private readonly List<IModel> _channels;
 
-    public QueueConsumerService()
+    public RabbitMqConsumer()
     {
         var factory = new ConnectionFactory()
         {
@@ -22,12 +20,12 @@ public class QueueConsumerService: BackgroundService
         };
         _connection = factory.CreateConnection();
         _channels = new List<IModel>();
-        foreach (KeyValuePair<string, IQueueHandler?> queue in Queues.GetQueues())
+        foreach (var workerItem in WorkerList.GetWorkers())
         {
             IModel channel = _connection.CreateModel();
             channel.ExchangeDeclare(exchange: "logs", type: ExchangeType.Fanout);
-            channel.QueueDeclare(queue.Key);
-            channel.QueueBind(queue: queue.Key, exchange: "logs", routingKey: ConfigApp.Get("rabbitmq.key"));
+            channel.QueueDeclare(workerItem.QueueName);
+            channel.QueueBind(queue: workerItem.QueueName, exchange: "logs", routingKey: ConfigApp.Get("rabbitmq.key"));
             _channels.Add(channel);
         }
     }
@@ -40,10 +38,12 @@ public class QueueConsumerService: BackgroundService
             var consumer = new EventingBasicConsumer(channel);
             consumer.Received +=  async (model, ea) =>
             {
-                var handler = Queues.GetHandler(queue);
+                var handler = WorkerList.GetWorker(queue);
                 var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
-                await handler.Execute(message);
+                var text = Encoding.UTF8.GetString(body);
+                var message = new Message(text);
+                handler.Message = message;
+                await handler.Execute();
                 var time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 Log.Information($"[x] queue {queue} executed at {time}......");
             };
@@ -55,14 +55,14 @@ public class QueueConsumerService: BackgroundService
         
         return Task.CompletedTask;
     }
-
+    
     public override void Dispose()
     {
         foreach (IModel channel in _channels)
         {
-            channel?.Close();
+            channel.Close();
         }
-        _connection?.Close();
+        _connection.Close();
         base.Dispose();
     }
 }

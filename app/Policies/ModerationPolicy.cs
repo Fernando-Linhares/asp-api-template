@@ -6,6 +6,6 @@ public class ModerationPolicy: IPolicy
 {
     public List<string> Rules { get; set; } =
     [
-        "moderation.users"
+        "admin.moderation.users"
     ];
 }

@@ -1,4 +1,4 @@
-using Api.App.Database;
+using Api.Database;
 using Api.App.Features.Pagination;
 using Api.App.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -7,18 +7,18 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.App.Controllers.Moderation.Users;
 
 [ApiController]
-[Authorize(Roles="moderation.users")]
+[Authorize(Roles="admin.moderation.users")]
 [Route("/moderation/users/pagination")]
 public class UserPaginationController(DatabaseContext context,  IPagination<User> pagination): BaseController
 {
     [HttpGet]
     public async Task<IActionResult> Paginate(
-        [FromQuery(Name = "search")] string? search = null,
-        [FromQuery(Name = "page")] int page = 1,
-        [FromQuery(Name = "perPage")] int perPage = 10)
+        [FromQuery(Name="search")] string? search = null,
+        [FromQuery(Name="page")] int page = 1,
+        [FromQuery(Name="perPage")] int perPage = 10)
     {
         var user = await LoggedUser();
-        
+
         var inputPagination = new PaginationInput<User>(
             page,
             perPage,
@@ -30,7 +30,7 @@ public class UserPaginationController(DatabaseContext context,  IPagination<User
                 : u.DeletedAt == null && user.Id != u.Id
                 )
         );
-        
+
         var paginationData = await pagination.Paginate(inputPagination);
         return AnswerPagination(paginationData);
     }

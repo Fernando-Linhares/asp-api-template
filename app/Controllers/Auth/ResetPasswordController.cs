@@ -1,15 +1,17 @@
 using Api.App.Controllers.Requests.Auth;
-using Api.App.Database;
+using Api.App.Features.Jwt;
+using Api.Database;
 using Api.App.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Api.App.Controllers.Auth;
 
 [ApiController]
-[Authorize(Roles="forgot_password")]
+[Authorize(Roles="account.reset.password")]
 [Route("/auth/reset-password")]
-public class ResetPasswordController(DatabaseContext context) : BaseController
+public class ResetPasswordController(DatabaseContext context, IStateLessSession stateLessSession) : BaseController
 {
     [HttpPost]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPassword request)
@@ -19,15 +21,15 @@ public class ResetPasswordController(DatabaseContext context) : BaseController
         context.Users.Update(user);
         await context.SaveChangesAsync();
 
-        var token = Token.GenerateNewToken(user);
-        context.Tokens.Update(token);
-        await context.SaveChangesAsync();
+        var rules = JsonConvert.DeserializeObject<string[]>(user.Rules);
 
-        return AnswerSuccess(new
+        if (rules == null)
         {
-            id = token.Id,
-            token = token.AccessToken,
-            expiresAt = token.ExpiredAt
-        });
+            return AnswerInternalError("Failed to parse rules");
+        }
+        
+        var session = stateLessSession.CreateUserSession(user.Id, user.Email, user.Name, rules);
+        
+        return AnswerSuccess(session);
     }
 }

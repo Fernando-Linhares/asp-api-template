@@ -1,4 +1,4 @@
-using Api.App.Database;
+using Api.Database;
 
 namespace Api.App.Providers;
 

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.App.Controllers.Auth;
 
 [ApiController]
-[Authorize(Roles = "personal")]
+[Authorize(Roles = "account.email.code")]
 [Route("/auth/send-email-confirmation")]
 public class SendEmailConfirmationController : BaseController
 {
@@ -14,8 +14,9 @@ public class SendEmailConfirmationController : BaseController
     {
         var user = await LoggedUser();
 
-        var confirmationCodeEmail = new AccountConfirmationMailBase(user.ConfirmationCode)
+        var confirmationCodeEmail = new AccountConfirmationMailBase
         {
+            Code = user.ConfirmationCode,
             To = user.Email
         };
         

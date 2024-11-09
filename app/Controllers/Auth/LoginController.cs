@@ -1,14 +1,16 @@
 using Api.App.Controllers.Requests.Auth;
-using Api.App.Database;
+using Api.App.Features.Jwt;
+using Api.Database;
 using Api.App.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace Api.App.Controllers.Auth;
 
 [ApiController]
 [Route("/auth/[controller]")]
-public class LoginController(DatabaseContext context) : BaseController
+public class LoginController(DatabaseContext context, IStateLessSession stateLessSession) : BaseController
 {
     [HttpPost]
     public async Task<IActionResult> Login([FromBody] Login login)
@@ -22,17 +24,13 @@ public class LoginController(DatabaseContext context) : BaseController
         
         if (BCrypt.Net.BCrypt.Verify(login.Password, user.Password))
         {
-            var token = Token.GenerateNewToken(user);
-            context.Tokens.Add(token);
-            await context.SaveChangesAsync();
-            
-            return AnswerSuccess(new
+            var rules = JsonConvert.DeserializeObject<string[]>(user.Rules);
+            if (rules == null)
             {
-                id = token.Id,
-                token = token.AccessToken,
-                refreshToken = token.RefreshToken,
-                expiresAt = token.ExpiredAt
-            });
+                return AnswerNotFound(new { error = "not found rules" });
+            }
+            var session = await stateLessSession.CreateUserSession(user.Id, user.Email, user.Name, rules);
+            return AnswerSuccess(session);
         }
 
         return AnswerUnauthorized(new { fields = new [] {"Email", "Password"}});

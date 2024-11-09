@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.App.Controllers.Auth;
 
 [ApiController]
-[Authorize(Roles = "personal")]
+[Authorize(Roles = "personal.me")]
 [Route("/auth/[controller]")]
 public class MeController : BaseController
 {

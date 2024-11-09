@@ -10,6 +10,7 @@ public static class ConfigApp
     {
         _defaults = new Dictionary<string, string>
         {
+            // Application
             ["app.name"] = GetterEnv.Get("APP_NAME") ?? String.Empty,
             ["app.version"] = GetterEnv.Get("APP_VERSION") ?? String.Empty,
             ["app.env"] = GetterEnv.Get("APP_ENV") ?? String.Empty,
@@ -17,19 +18,37 @@ public static class ConfigApp
             ["app.frontend"] =  GetterEnv.Get("APP_FRONTEND") ?? String.Empty,
             ["app.key"] = GetterEnv.Get("APP_KEY") ?? String.Empty,
             ["app.expiration.token"] = GetterEnv.Get("SESSION_EXPIRATION") ?? String.Empty,
+            
+            // Database
             ["db.connection"] = GetConnectionString(),
+            
+            // SMTP
             ["smtp.host"] = GetSmtpHost() ?? String.Empty,
             ["smtp.username"] = GetterEnv.Get("SMTP_USER") ?? String.Empty,
             ["smtp.email"] = GetterEnv.Get("SMTP_EMAIL") ?? String.Empty,
             ["smtp.password"] = GetterEnv.Get("SMTP_PASSWORD") ?? String.Empty,
             ["smtp.port"] = GetterEnv.Get("SMTP_PORT") ?? String.Empty,
+            
+            // RabbitMq 
             ["rabbitmq.host"] = GetRabbitMqHost()?? String.Empty,
             ["rabbitmq.user"] = GetterEnv.Get("RABBITMQ_USER") ?? String.Empty,
             ["rabbitmq.password"] = GetterEnv.Get("RABBITMQ_PASSWORD") ?? String.Empty,
             ["rabbitmq.key"] = GetterEnv.Get("RABBITMQ_KEY") ?? String.Empty,
-            ["admin.name"] = GetterEnv.Get("ADMIN_NAME") ?? String.Empty,
+            
+            // Admin
+            ["admin.name"] = GetRedisHost() ?? String.Empty,
             ["admin.email"] = GetterEnv.Get("ADMIN_EMAIL") ?? String.Empty,
             ["admin.password"] = GetterEnv.Get("ADMIN_PASSWORD") ?? String.Empty,
+            
+            // Redis
+            ["redis.host"] = GetterEnv.Get("REDIS_HOST") ?? String.Empty,
+            ["redis.port"] = GetterEnv.Get("REDIS_PORT") ?? String.Empty,
+            ["redis.password"] = GetterEnv.Get("REDIS_PASSWORD") ?? String.Empty,
+            ["redis.db"] = GetterEnv.Get("REDIS_DB") ?? String.Empty,
+            
+            // Cache
+            ["cache.driver"] = GetterEnv.Get("CACHE_DRIVER") ?? String.Empty,
+            ["cache.expiration"] = GetterEnv.Get("CACHE_EXPIRATION") ?? String.Empty,
         };
     }
 
@@ -55,6 +74,13 @@ public static class ConfigApp
         return GetterEnv.Get("APP_ENV") == "local"
             ? GetterEnv.Get("RABBITMQ_HOST")
             : GetterEnv.Get("RABBITMQ_CONTAINER");
+    }
+    
+    private static string? GetRedisHost()
+    {
+        return GetterEnv.Get("APP_ENV") == "local"
+            ? GetterEnv.Get("REDIS_HOST")
+            : GetterEnv.Get("REDIS_CONTAINER");
     }
 
 

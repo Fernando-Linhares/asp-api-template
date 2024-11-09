@@ -1,12 +1,12 @@
 using Api.App.Controllers.Requests.Auth;
-using Api.App.Database;
+using Api.Database;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.App.Controllers.Auth;
 
 [ApiController]
-[Authorize(Roles = "personal")]
+[Authorize(Roles = "account.confirm")]
 [Route("/auth/confirm-account")]
 public class ConfirmAccountController(DatabaseContext context): BaseController
 {
@@ -26,7 +26,8 @@ public class ConfirmAccountController(DatabaseContext context): BaseController
 
         return AnswerSuccess(new
         {
-            UserId = user.Id, confirmationCode.Code
+            id = user.Id,
+            code=confirmationCode.Code
         });
     }
 }

@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Api.App.Database;
+using Api.Database;
 using Api.App.Exceptions;
 using Api.App.Features.Database;
 using Microsoft.EntityFrameworkCore;

@@ -6,15 +6,15 @@ services:
       dockerfile: .docker/Dockerfile
     ports:
       - '5000:8080'
-    restart: always
     volumes:
-      - './api/tmp:/app/tmp'
+      - './tmp:/app/tmp'
     networks:
       - network
     depends_on:
       - db
       - mail
       - rabbitmq
+      - redis
   db:
     container_name: db
     image: mcr.microsoft.com/mssql/server
@@ -35,8 +35,8 @@ services:
     volumes:
       - 'mail.data:/data'
     ports:
-      - 8025:8025
-      - 1025:1025
+      - '8025:8025'
+      - '1025:1025'
     environment:
       - 'MP_MAX_MESSAGES=5000'
       - 'MP_SMTP_AUTH_ACCEPT_ANY=1'
@@ -54,7 +54,16 @@ services:
       - 'RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}'
     volumes:
       - 'rabbitmq.data:/var/lib/rabbitmq'
-      - './api/tmp/logs/queue:/var/log/rabbitmq'
+      - './tmp/logs/rabbitmq:/var/log/rabbitmq'
+    networks:
+      - network
+  redis:
+    container_name: redis
+    image: 'redis:alpine'
+    ports:
+      - '6379:6379'
+    volumes:
+      - 'redis.data:/data'
     networks:
       - network
 volumes:
@@ -67,6 +76,9 @@ volumes:
   mssql.data:
     driver: local
     name: mssql.data
+  redis.data:
+    driver: local
+    name: redis.data
 networks:
   network:
     driver: bridge

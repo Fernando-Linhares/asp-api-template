@@ -16,6 +16,7 @@ public static class AppServiceProvider
         AuthServiceProvider.Bind(builder);
         LogServiceProvider.Bind(builder);
         ModerationServiceProvider.Bind(builder);
+        CacheServiceProvider.Bind(builder);
         builder.Services.AddSingleton<IExceptionHandler, Handling>();
     }
 }

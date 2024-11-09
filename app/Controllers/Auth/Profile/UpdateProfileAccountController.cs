@@ -1,12 +1,12 @@
 using Api.App.Controllers.Requests.Auth.Profile;
-using Api.App.Database;
+using Api.Database;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.App.Controllers.Auth.Profile;
 
 [ApiController]
-[Authorize(Roles = "personal")]
+[Authorize(Roles = "profile.update.account")]
 [Route("/auth/profile/account")]
 public class UpdateProfileAccountController(DatabaseContext context) : BaseController
 {
