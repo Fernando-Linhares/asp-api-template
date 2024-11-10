@@ -5,6 +5,7 @@ using Api.App.Features.Jwt;
 using Api.App.Mails;
 using Api.App.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RandomString4Net;
 
@@ -20,9 +21,10 @@ public class RegisterController(DatabaseContext context, IStateLessSession state
       await request.Validate();
 
       var rules = GetRules();
-      
+
       var user = new User
       {
+         Id = Guid.NewGuid(),
          Avatar = GetAvatar(),
          Name = request.Name,
          Email = request.Email,
@@ -32,7 +34,7 @@ public class RegisterController(DatabaseContext context, IStateLessSession state
          Rules = JsonConvert.SerializeObject(rules),
          ConfirmationCode = RandomString.GetString(Types.ALPHABET_UPPERCASE, 5).ToUpper(),
          Active = true,
-         Confirmed = false,
+         Confirmed = false
       };
 
       context.Users.Add(user);
@@ -56,14 +58,12 @@ public class RegisterController(DatabaseContext context, IStateLessSession state
 
    private string[] GetRules()
    {
-      var group = context.Groups.FirstOrDefault(g => g.Name == "default");
-
-      if(group == null)
-      {
-         throw new Exception("Not found default group");
-      }
-
-      return group.Rules.Select(r => r.Name).ToArray();
+      return (
+         from Rule r in context.Rules
+         join Group g in context.Groups on r.GroupId equals g.Id
+         where g.Name == "default"
+         select r.Name
+      ).ToArray();
    }
 
    private void SendAccountConfirmationEmail(User user)

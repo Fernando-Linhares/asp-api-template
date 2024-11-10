@@ -8,6 +8,7 @@ public class Rule
     public string Name { get; set; }
     public string Description { get; set; }
     public Group? Group { get; set; }
+    [ForeignKey("Group")]
     public Guid? GroupId { get; set; }
     public User CreatedBy { get; set; }
     [ForeignKey("User")]
