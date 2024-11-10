@@ -27,7 +27,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options): DbConte
                 "personal.session.refresh",
                 "reset.password",
                 "reset.password",
-                "account.reset.password",
                 "account.email.code"
             };
             var adminRules = new[]
@@ -35,7 +34,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options): DbConte
                 "admin.moderation.users"
             };
             
-            adminRules.Concat(defaultRules);
+            var allRules = adminRules.Concat(defaultRules).ToArray();
             
             var user = new User
             {
@@ -72,7 +71,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options): DbConte
             context.Set<Group>().Add(groupAdmin);
             context.SaveChanges();
 
-            foreach (var rule in adminRules)
+            foreach (var rule in allRules)
             {
                 context.Set<Rule>().Add(new Rule
                 {

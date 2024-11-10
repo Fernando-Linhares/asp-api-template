@@ -29,19 +29,19 @@ public static class ConfigApp
             ["smtp.password"] = GetterEnv.Get("SMTP_PASSWORD") ?? String.Empty,
             ["smtp.port"] = GetterEnv.Get("SMTP_PORT") ?? String.Empty,
             
-            // RabbitMq 
+            // RabbitMq
             ["rabbitmq.host"] = GetRabbitMqHost()?? String.Empty,
             ["rabbitmq.user"] = GetterEnv.Get("RABBITMQ_USER") ?? String.Empty,
             ["rabbitmq.password"] = GetterEnv.Get("RABBITMQ_PASSWORD") ?? String.Empty,
             ["rabbitmq.key"] = GetterEnv.Get("RABBITMQ_KEY") ?? String.Empty,
             
             // Admin
-            ["admin.name"] = GetRedisHost() ?? String.Empty,
+            ["admin.name"] = GetterEnv.Get("ADMIN_NAME") ?? String.Empty,
             ["admin.email"] = GetterEnv.Get("ADMIN_EMAIL") ?? String.Empty,
             ["admin.password"] = GetterEnv.Get("ADMIN_PASSWORD") ?? String.Empty,
             
             // Redis
-            ["redis.host"] = GetterEnv.Get("REDIS_HOST") ?? String.Empty,
+            ["redis.host"] = GetRedisHost() ?? String.Empty,
             ["redis.port"] = GetterEnv.Get("REDIS_PORT") ?? String.Empty,
             ["redis.password"] = GetterEnv.Get("REDIS_PASSWORD") ?? String.Empty,
             ["redis.db"] = GetterEnv.Get("REDIS_DB") ?? String.Empty,

@@ -41,15 +41,17 @@ public class StateLessSession(IDistributedCache cache): IStateLessSession
     {
         string session = sessionId + "_refresh";
         var token = await cache.GetStringAsync(session);
+        var a = token == refreshToken;
+        
         return token != null && token == refreshToken;
     }
 
     public Token ForgotPassword(Guid id, string email, string name)
     {
         int minutes = 10;
-        var input = new InputToken(id, name, email, minutes, ["forgot_password"]);
+        var input = new InputToken(id, name, email, minutes, ["account.reset.password"]);
         var accessToken = _tokenBuilder.GenerateAccessToken(input);
-        _tokenBuilder.LogToken("forgot_password",  accessToken);
+        _tokenBuilder.LogToken("account.reset.password",  accessToken);
         return accessToken;
     }
 }

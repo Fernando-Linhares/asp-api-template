@@ -4,7 +4,6 @@ using Api.App.Features.Database;
 using Api.App.Features.Pagination;
 using Api.App.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.App.Controllers;
 

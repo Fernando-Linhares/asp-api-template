@@ -12,7 +12,7 @@ namespace Api.App.Controllers.Auth;
 public class RefreshTokenController(DatabaseContext context, IStateLessSession stateLessSession) : BaseController
 {
     [HttpPut("{sessionId}/{refreshToken}")]
-    public async Task<IActionResult> Refresh(string sessionId, string refreshToken)
+    public async Task<IActionResult> Refresh(Guid sessionId, string refreshToken)
     {
         var user = await LoggedUser(context);
         
@@ -20,17 +20,16 @@ public class RefreshTokenController(DatabaseContext context, IStateLessSession s
         {
             return AnswerUnauthorized();
         }
-
-        Guid gid = new Guid(sessionId);
-
-        if (await stateLessSession.RefreshUserSession(gid, refreshToken))
+        
+        if (await stateLessSession.RefreshUserSession(sessionId, refreshToken))
         {
             var rules = JsonConvert.DeserializeObject<string[]>(user.Rules);
             if (rules == null)
             {
-                return AnswerInternalError("user rules not found");
+                return AnswerInternalError("user-rules-not-found");
             }
-            var session = stateLessSession.CreateUserSession(user.Id, user.Email, user.Name, rules);
+            var session = await stateLessSession.CreateUserSession(user.Id, user.Email, user.Name, rules);
+            return AnswerSuccess(session);
         }
 
         return AnswerUnauthorized(new[]{"refresh-token-invalid"});

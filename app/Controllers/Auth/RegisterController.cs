@@ -18,6 +18,8 @@ public class RegisterController(DatabaseContext context, IStateLessSession state
    public async Task<IActionResult> Register([FromBody] Register request)
    {
       await request.Validate();
+
+      var rules = GetRules();
       
       var user = new User
       {
@@ -27,7 +29,7 @@ public class RegisterController(DatabaseContext context, IStateLessSession state
          Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
          CreatedAt = DateTime.Now,
          UpdatedAt = DateTime.Now,
-         Rules = GetRules(),
+         Rules = JsonConvert.SerializeObject(rules),
          ConfirmationCode = RandomString.GetString(Types.ALPHABET_UPPERCASE, 5).ToUpper(),
          Active = true,
          Confirmed = false,
@@ -36,14 +38,14 @@ public class RegisterController(DatabaseContext context, IStateLessSession state
       context.Users.Add(user);
       await context.SaveChangesAsync();
       SendAccountConfirmationEmail(user);
-      
+
       var session = await stateLessSession.CreateUserSession(
          user.Id,
          user.Email,
          user.Name,
-         ["personal"]
-         );
-      
+         rules
+      );
+
       return AnswerSuccess(session);
    }
 
@@ -52,9 +54,16 @@ public class RegisterController(DatabaseContext context, IStateLessSession state
       return new Manager("profile").Url("avatar-m.png");
    }
 
-   private string GetRules()
+   private string[] GetRules()
    {
-      return JsonConvert.SerializeObject(new []{"personal"});
+      var group = context.Groups.FirstOrDefault(g => g.Name == "default");
+
+      if(group == null)
+      {
+         throw new Exception("Not found default group");
+      }
+
+      return group.Rules.Select(r => r.Name).ToArray();
    }
 
    private void SendAccountConfirmationEmail(User user)
